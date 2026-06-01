@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daytona 100</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080a;--bg2:#0e0e12;--bg3:#17171d;--bg4:#1f1f27;--bg5:#28283200;
+  --border:#21212c;--border2:#2c2c3a;
+  --orange:#f97316;--orange2:#ea580c;--orange-dim:rgba(249,115,22,0.1);--orange-glow:rgba(249,115,22,0.18);
+  --text:#f4f4f5;--text2:#a1a1aa;--text3:#52525b;
+  --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--green:#22c55e;--purple:#a855f7;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;background:var(--bg)}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+#content::-webkit-scrollbar{width:2px}
+#content::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* Nav */
+#nav{background:rgba(8,8,10,0.97);border-top:1px solid var(--border);display:flex;flex-shrink:0;backdrop-filter:blur(24px)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 16px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.15s}
+.nav-btn.active{color:var(--orange)}
+.nav-btn svg{width:20px;height:20px;stroke-width:2}
+
+/* Cards */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card-sm{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px}
+.card-xs{background:var(--bg4);border-radius:8px;padding:9px 11px}
+
+.section-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;padding:18px 16px 8px}
+
+/* Progress */
+.progress-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--orange2),var(--orange));border-radius:3px;transition:width 0.8s cubic-bezier(.4,0,.2,1)}
+
+/* Inputs */
+.field-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:0.3px;display:block;margin-bottom:5px}
+input[type=text],input[type=number]{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;padding:11px 13px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input:focus{border-color:rgba(249,115,22,0.5);box-shadow:0 0 0 3px rgba(249,115,22,0.08)}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+textarea{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;width:100%;outline:none;resize:none;font-family:inherit}
+textarea:focus{border-color:rgba(249,115,22,0.5)}
+
+/* Buttons */
+.btn-primary{background:var(--orange);color:#fff;font-size:14px;font-weight:700;padding:13px;border-radius:10px;border:none;cursor:pointer;width:100%;letter-spacing:0.2px;transition:transform 0.1s,opacity 0.1s}
+.btn-primary:active{transform:scale(0.97)}
+.btn-outline{background:transparent;color:var(--orange);border:1px solid rgba(249,115,22,0.35);font-size:13px;font-weight:600;padding:10px 16px;border-radius:8px;cursor:pointer}
+.btn-ghost{background:var(--bg4);color:var(--text2);border:1px solid var(--border2);font-size:12px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.25);font-size:13px;font-weight:600;padding:12px;border-radius:10px;cursor:pointer;width:100%}
+
+/* Toggle */
+.toggle{width:46px;height:26px;background:var(--bg4);border:1.5px solid var(--border2);border-radius:13px;position:relative;cursor:pointer;transition:background 0.2s,border-color 0.2s;flex-shrink:0;display:inline-block}
+.toggle.on{background:var(--orange);border-color:var(--orange)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.3px}
+.badge-orange{background:rgba(249,115,22,0.12);color:var(--orange)}
+.badge-amber{background:rgba(245,158,11,0.12);color:var(--amber)}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--green)}
+.badge-blue{background:rgba(59,130,246,0.12);color:var(--blue)}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--red)}
+.badge-purple{background:rgba(168,85,247,0.12);color:var(--purple)}
+
+/* Completed row */
+.day-complete{background:rgba(249,115,22,0.06)!important;border-color:rgba(249,115,22,0.28)!important}
+
+/* Accordion */
+.week-block{border-bottom:1px solid var(--border)}
+.week-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;background:var(--bg2)}
+.week-header:active{background:rgba(255,255,255,0.02)}
+.week-body{display:none;padding:6px 12px 8px}
+.week-body.open{display:block}
+.chevron-icon{transition:transform 0.2s;color:var(--text3)}
+.chevron-icon.open{transform:rotate(180deg)}
+
+/* Day row */
+.day-row{border:1px solid var(--border);border-radius:10px;margin-bottom:5px;overflow:hidden;transition:border-color 0.3s,background 0.3s;background:var(--bg3)}
+.day-row-top{display:flex;align-items:center;gap:10px;padding:10px 11px;cursor:pointer}
+.day-expand{display:none;padding:0 11px 11px;flex-direction:column;gap:8px}
+.day-expand.open{display:flex}
+
+/* Hero */
+.hero-card{background:linear-gradient(145deg,#0f0f14,#17171f);border:1px solid var(--border2);border-radius:18px;padding:18px;margin:14px 16px;position:relative;overflow:hidden}
+.hero-card::after{content:'';position:absolute;top:-50px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,0.07),transparent 65%);pointer-events:none}
+
+/* Race card */
+.race-card{background:linear-gradient(135deg,rgba(249,115,22,0.08),rgba(249,115,22,0.02));border:1px solid rgba(249,115,22,0.22);border-radius:14px;padding:16px}
+
+/* Stat row */
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-sheet{background:var(--bg2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:16px 16px 32px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;animation:slideUp 0.22s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px}
+
+/* Toast */
+.toast{position:fixed;top:22px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:13px;font-weight:700;padding:9px 20px;border-radius:24px;z-index:400;white-space:nowrap;pointer-events:none;animation:toastIn 0.2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Charts */
+.chart-container{position:relative;width:100%;height:220px}
+
+/* Rule card */
+.rule-card{border-left:2px solid var(--c,var(--orange));border-radius:0 9px 9px 0;background:var(--bg3);padding:10px 13px;margin-bottom:7px}
+.rule-title{font-size:12px;font-weight:700;color:var(--c,var(--orange));margin-bottom:3px}
+.rule-desc{font-size:11px;color:var(--text3);line-height:1.55}
+
+/* Tab pills */
+.tab-row{display:flex;gap:7px;padding:0 16px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-row::-webkit-scrollbar{display:none}
+.tab-pill{flex-shrink:0;font-size:11px;font-weight:600;padding:6px 13px;border-radius:20px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text3);transition:all 0.12s;letter-spacing:0.2px}
+.tab-pill.active{background:var(--orange-dim);color:var(--orange);border-color:rgba(249,115,22,0.3)}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 4px}
+.top-bar h1{font-size:22px;font-weight:700}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.flex{display:flex}.aic{align-items:center}.jcb{justify-content:space-between}
+.pb-nav{padding-bottom:88px}
+.big-num{font-size:28px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums;line-height:1}
+
+/* Day label strip for schedule days Mon-Sun */
+.day-label-strip{display:flex;gap:3px;margin-bottom:8px}
+.day-chip{flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.3px;padding:3px 2px;border-radius:4px;background:var(--bg4);text-transform:uppercase}
+
+/* Workout pills in week view */
+.workout-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px}
+.wk-pill{border-radius:7px;padding:6px 4px;text-align:center;background:var(--bg4);border:1px solid var(--border)}
+.wk-pill.complete{background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.25)}
+.wk-pill.race{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3)}
+.wk-pill .mi{font-size:12px;font-weight:700;color:var(--text)}
+.wk-pill.complete .mi{color:var(--orange)}
+.wk-pill.race .mi{color:var(--red)}
+.wk-pill .lbl{font-size:8px;color:var(--text3);margin-top:2px;font-weight:600;letter-spacing:0.3px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="content"></div>
+  <nav id="nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="setTab('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Today
+    </button>
+    <button class="nav-btn" id="nav-schedule" onclick="setTab('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule
+    </button>
+    <button class="nav-btn" id="nav-analytics" onclick="setTab('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Charts
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="setTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Strategy
+    </button>
+  </nav>
+</div>
+<div id="modal-root"></div>
+
+<script>
+// ===================== DATA =====================
+const RACE_DATE = new Date('2026-12-12T00:00:00');
+
+// Week data: [weekNum, startDate, Mon, Tue, Wed, Thu(long), Fri, totalMiles]
+// Days: Monday=Easy, Tuesday=Moderate, Wednesday=Easy, Thursday=Long Run, Friday=Easy
+// Saturday & Sunday are rest days
+const WEEKS_RAW = [
+  [1,'2026-06-01',6,8,5,15,6,40],
+  [2,'2026-06-08',7,9,6,16,8,46],
+  [3,'2026-06-15',8,10,6,18,10,52],
+  [4,'2026-06-22',6,7,5,12,5,35],
+  [5,'2026-06-29',8,11,7,20,10,56],
+  [6,'2026-07-06',9,12,7,22,11,61],
+  [7,'2026-07-13',10,13,8,24,12,67],
+  [8,'2026-07-20',6,8,5,14,7,40],
+  [9,'2026-07-27',10,14,8,26,13,71],
+  [10,'2026-08-03',11,15,8,28,14,76],
+  [11,'2026-08-10',12,16,9,31,15,83],
+  [12,'2026-08-17',7,9,6,16,8,46],
+  [13,'2026-08-24',12,16,9,32,16,85],
+  [14,'2026-09-01',12,17,9,35,17,90],
+  [15,'2026-09-07',13,18,10,38,18,97],
+  [16,'2026-09-14',8,10,6,18,8,50],
+  [17,'2026-09-21',13,18,10,35,17,93],
+  [18,'2026-09-28',14,19,10,40,20,103],
+  [19,'2026-10-05',14,20,11,45,22,112],
+  [20,'2026-10-12',9,11,7,20,10,57],
+  [21,'2026-10-19',15,20,11,50,24,120],
+  [22,'2026-10-26',8,10,6,15,8,47],
+  [23,'2026-11-02',12,16,9,32,16,85],
+  [24,'2026-11-09',12,17,9,35,17,90],
+  [25,'2026-11-16',10,12,8,20,10,60],
+  [26,'2026-11-23',8,10,6,15,6,45],
+  [27,'2026-11-30',6,8,5,10,5,34],
+  [28,'2026-12-07',4,'REST','REST','DAYTONA 100','REST',8],
+];
+
+const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri'];
+const DAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const DAY_TYPE = ['Easy Run','Moderate Run','Easy Run','Long Run','Easy Run'];
+
+function pDate(s){ const [y,m,d]=s.split('-'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d)); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function fmtDate(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtDateFull(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function dStr(d){ return d.toISOString().split('T')[0]; }
+
+// Build flat log entries from week data
+function buildLogs(){
+  const logs = [];
+  WEEKS_RAW.forEach(([wk, startDate, mon, tue, wed, thu, fri, total]) => {
+    const start = pDate(startDate);
+    const dayOffsets = [0,1,2,3,4]; // Mon-Fri
+    const workouts = [mon,tue,wed,thu,fri];
+    const isRaceWeek = wk === 28;
+
+    dayOffsets.forEach((offset, i) => {
+      const date = addDays(start, offset);
+      const workout = workouts[i];
+      const isRest = workout === 'REST';
+      const isRace = workout === 'DAYTONA 100';
+      const isRecover = workout === 'REST & RECOVER';
+      const miles = typeof workout === 'number' ? workout : null;
+
+      logs.push({
+        date: dStr(date),
+        weekNumber: wk,
+        dayName: DAY_FULL[i],
+        dayShort: DAY_NAMES[i],
+        dayType: DAY_TYPE[i],
+        scheduledMiles: miles,
+        scheduledLabel: isRace ? 'DAYTONA 100 🏁' : isRest ? 'Rest Day' : isRecover ? 'Rest & Recover' : `${workout} Mi — ${DAY_TYPE[i]}`,
+        actualMiles: null,
+        actualDuration: null,
+        notes: '',
+        isCompleted: false,
+        isRace, isRest, isRecover,
+        weekTotal: total,
+        isRaceWeek
+      });
+    });
+  });
+  return logs;
+}
+
+// ===================== STATE =====================
+let S = {
+  tab: 'dashboard',
+  logs: buildLogs(),
+  openWeeks: new Set([1]),
+  editDate: null,
+  schedFilter: 'all',
+  chartInited: false
+};
+
+(function loadStorage(){
+  try {
+    const raw = localStorage.getItem('d100_logs');
+    if(raw){ const p=JSON.parse(raw); if(Array.isArray(p)&&p.length===S.logs.length) S.logs=p; }
+    const ow = localStorage.getItem('d100_openWeeks');
+    if(ow) S.openWeeks = new Set(JSON.parse(ow));
+  } catch(e){}
+})();
+
+function save(){
+  try{
+    localStorage.setItem('d100_logs', JSON.stringify(S.logs));
+    localStorage.setItem('d100_openWeeks', JSON.stringify([...S.openWeeks]));
+  }catch(e){}
+}
+
+// ===================== HELPERS =====================
+function daysToRace(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  return Math.max(0,Math.round((RACE_DATE-now)/86400000));
+}
+
+function completedCount(){ return S.logs.filter(l=>l.isCompleted&&!l.isRest&&!l.isRecover).length; }
+function totalRunDays(){ return S.logs.filter(l=>!l.isRest&&!l.isRecover&&!l.isRace).length; }
+
+function wkMiles(wk){
+  return S.logs.filter(l=>l.weekNumber===wk&&l.scheduledMiles).reduce((s,l)=>s+(l.scheduledMiles||0),0);
+}
+function wkActualMiles(wk){
+  return S.logs.filter(l=>l.weekNumber===wk&&l.actualMiles).reduce((s,l)=>s+(l.actualMiles||0),0);
+}
+
+function currentWk(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  for(let i=0;i<S.logs.length;i++){
+    const d=pDate(S.logs[i].date); d.setHours(0,0,0,0);
+    if(d>=now) return S.logs[i].weekNumber;
+  }
+  return 28;
+}
+
+function todayLog(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const found=S.logs.find(l=>{ const d=pDate(l.date); d.setHours(0,0,0,0); return d.getTime()===now.getTime(); });
+  return found || S.logs.find(l=>!l.isCompleted&&!l.isRest) || S.logs[0];
+}
+
+function totalScheduledMiles(){
+  return S.logs.filter(l=>l.scheduledMiles).reduce((s,l)=>s+(l.scheduledMiles||0),0);
+}
+function totalActualMiles(){
+  return S.logs.filter(l=>l.actualMiles).reduce((s,l)=>s+(l.actualMiles||0),0);
+}
+
+// Peak week
+function peakWeek(){
+  let max=0, wk=0;
+  for(let w=1;w<=28;w++){ const m=wkMiles(w); if(m>max){max=m;wk=w;} }
+  return {wk, miles:max};
+}
+
+// ===================== TOAST =====================
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',1800);
+  setTimeout(()=>el.remove(),2100);
+}
+
+// ===================== RENDER =====================
+function render(){
+  const c=document.getElementById('content');
+  c.innerHTML = S.tab==='dashboard' ? renderDash()
+              : S.tab==='schedule'  ? renderSchedule()
+              : S.tab==='analytics' ? renderAnalytics()
+              : renderSettings();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+S.tab);
+  if(nb) nb.classList.add('active');
+  if(S.tab==='analytics') initCharts();
+}
+
+function setTab(t){ S.tab=t; S.chartInited=false; render(); document.getElementById('content').scrollTop=0; }
+
+// ===================== DASHBOARD =====================
+function renderDash(){
+  const tl = todayLog();
+  const dr = daysToRace();
+  const curWk = currentWk();
+  const sched = wkMiles(curWk);
+  const actual = wkActualMiles(curWk);
+  const pct = sched>0 ? Math.min(100,(actual/sched)*100) : 0;
+  const done = completedCount();
+  const total = totalRunDays();
+  const overallPct = total>0 ? Math.min(100,(done/total)*100) : 0;
+  const pk = peakWeek();
+  const d = pDate(tl.date);
+  const isRest = tl.isRest || tl.isRecover;
+  const isRace = tl.isRace;
+
+  const weeksLeft = Math.max(0, 28 - curWk + 1);
+  const totalSched = totalScheduledMiles();
+  const totalAct = totalActualMiles();
+
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase">Daytona 100</div>
+        <h1>${tl.isRace?'Race Day 🏁':'Today'}</h1>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--text3)">RACE DAY</div>
+        <div style="font-size:26px;font-weight:700;color:var(--orange);line-height:1">${dr}<span style="font-size:12px;font-weight:500;color:var(--text3)"> days</span></div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:13px">
+        <div style="flex:1;min-width:0;padding-right:12px">
+          <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:0.8px;text-transform:uppercase">${tl.dayName} · ${fmtDate(d)} · Wk ${tl.weekNumber}</div>
+          <div style="font-size:16px;font-weight:700;margin-top:5px;line-height:1.3;color:${isRace?'var(--red)':isRest?'var(--text2)':'var(--text)'}">${tl.scheduledLabel}</div>
+          ${!isRest&&!isRace?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${tl.dayType} · ${tl.scheduledMiles} miles scheduled</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:0.5px">DONE</div>
+          <div class="toggle ${tl.isCompleted?'on':''}" onclick="toggleComplete('${tl.date}')"></div>
+        </div>
+      </div>
+      ${!isRest&&!isRace?`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="card-xs" style="text-align:center">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:3px">SCHEDULED</div>
+          <div style="font-size:20px;font-weight:700;color:var(--orange)">${tl.scheduledMiles}<span style="font-size:11px;color:var(--text3);font-weight:400"> mi</span></div>
+        </div>
+        <div class="card-xs" style="text-align:center">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:3px">LOGGED</div>
+          <div style="font-size:20px;font-weight:700">${tl.actualMiles||'—'}${tl.actualMiles?'<span style="font-size:11px;color:var(--text3);font-weight:400"> mi</span>':''}</div>
+        </div>
+      </div>`:''}
+      ${isRace?`<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:10px;margin-top:8px;text-align:center">
+        <div style="font-size:13px;font-weight:700;color:var(--red)">100 Miles. One Shot. Let's Go.</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Daytona Beach, FL · Dec 12, 2026</div>
+      </div>`:''}
+      ${tl.isCompleted&&!isRace?`<div style="display:flex;align-items:center;gap:6px;margin-top:10px;background:var(--orange-dim);border:1px solid rgba(249,115,22,0.2);border-radius:7px;padding:7px 10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:12px;font-weight:700;color:var(--orange)">Miles in the bank. Row turned orange!</span>
+      </div>`:''}
+    </div>
+
+    <!-- Quick Log -->
+    ${!isRest&&!isRace?`
+    <div style="padding:0 16px;margin-bottom:4px">
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:7px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Log Today's Run
+        </div>
+        <div class="g2" style="margin-bottom:10px">
+          <div><label class="field-label">Actual Miles</label><input type="number" id="ql-mi" placeholder="${tl.scheduledMiles}" step="0.1"></div>
+          <div><label class="field-label">Duration (min)</label><input type="number" id="ql-dur" placeholder="e.g. 90" step="1"></div>
+        </div>
+        <button class="btn-primary" onclick="quickLog('${tl.date}')">Save Run</button>
+      </div>
+    </div>`:''}
+
+    <!-- Weekly Progress -->
+    <div class="section-title">Week ${curWk} Progress</div>
+    <div style="padding:0 16px;margin-bottom:10px">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:22px;font-weight:700">${actual.toFixed(1)}<span style="font-size:12px;color:var(--text3);font-weight:400"> / ${sched} mi</span></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Miles logged this week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:28px;font-weight:700;color:var(--orange)">${pct.toFixed(0)}<span style="font-size:14px;color:var(--text3)">%</span></div>
+            <div style="font-size:10px;color:var(--text3)">complete</div>
+          </div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div style="padding:0 16px;margin-bottom:10px">
+      <div class="g2">
+        <div class="card-sm">
+          <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.8px;margin-bottom:7px">OVERALL</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;color:var(--orange)">${done}<span style="font-size:11px;color:var(--text3);font-weight:400"> / ${total}</span></div>
+          <div style="font-size:10px;color:var(--text3);margin:4px 0 6px">Days completed</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${overallPct.toFixed(1)}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">${overallPct.toFixed(0)}% of plan</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.8px;margin-bottom:7px">TOTAL MILES</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;color:var(--orange)">${totalAct.toFixed(0)}<span style="font-size:11px;color:var(--text3);font-weight:400"> / ${totalSched}</span></div>
+          <div style="font-size:10px;color:var(--text3);margin:4px 0 6px">Miles logged vs plan</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${totalSched>0?Math.min(100,(totalAct/totalSched)*100).toFixed(1):0}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">${weeksLeft} weeks left</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Peak week & race countdown -->
+    <div style="padding:0 16px;margin-bottom:20px">
+      <div class="race-card">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:0.8px">RACE STATS</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">RACE DAY</div>
+            <div style="font-size:13px;font-weight:700">Dec 12</div>
+            <div style="font-size:10px;color:var(--text3)">2026</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">PEAK WEEK</div>
+            <div style="font-size:13px;font-weight:700;color:var(--orange)">${pk.miles}</div>
+            <div style="font-size:10px;color:var(--text3)">Wk ${pk.wk} miles</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">TOTAL PLAN</div>
+            <div style="font-size:13px;font-weight:700;color:var(--orange)">${totalSched}</div>
+            <div style="font-size:10px;color:var(--text3)">miles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===================== SCHEDULE =====================
+function renderSchedule(){
+  const curWk = currentWk();
+  const filtered = WEEKS_RAW.filter(([wk])=>{
+    if(S.schedFilter==='current') return wk===curWk;
+    if(S.schedFilter==='incomplete'){
+      const days=S.logs.filter(l=>l.weekNumber===wk&&!l.isRest&&!l.isRecover&&!l.isRace);
+      return days.some(d=>!d.isCompleted);
+    }
+    return true;
+  });
+
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Schedule</h1>
+      <div style="font-size:11px;color:var(--text3)">${completedCount()} / ${totalRunDays()} days</div>
+    </div>
+    <div class="tab-row">
+      <button class="tab-pill ${S.schedFilter==='all'?'active':''}" onclick="setSF('all')">All 28 Weeks</button>
+      <button class="tab-pill ${S.schedFilter==='current'?'active':''}" onclick="setSF('current')">This Week</button>
+      <button class="tab-pill ${S.schedFilter==='incomplete'?'active':''}" onclick="setSF('incomplete')">Incomplete</button>
+    </div>
+    ${filtered.map(([wk])=>renderWeek(wk)).join('')}
+  </div>`;
+}
+
+function renderWeek(wk){
+  const open = S.openWeeks.has(wk);
+  const days = S.logs.filter(l=>l.weekNumber===wk);
+  const runDays = days.filter(d=>!d.isRest&&!d.isRecover&&!d.isRace);
+  const done = runDays.filter(d=>d.isCompleted).length;
+  const allDone = done===runDays.length && runDays.length>0;
+  const sched = wkMiles(wk);
+  const actual = wkActualMiles(wk);
+  const isRaceWeek = wk===28;
+  const startDate = days.length?fmtDate(pDate(days[0].date)):'';
+
+  return `<div class="week-block">
+    <div class="week-header" onclick="toggleWk(${wk})">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700">${isRaceWeek?'🏁 Race Week':'Week '+wk}</span>
+          ${isRaceWeek?'<span class="badge badge-red">DAYTONA 100</span>':allDone?'<span class="badge badge-orange">✓ Complete</span>':`<span style="font-size:11px;color:var(--text3)">${done}/${runDays.length} runs</span>`}
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${startDate} · ${sched} mi scheduled${actual>0?' · '+actual.toFixed(1)+' logged':''}</div>
+      </div>
+      <svg class="chevron-icon ${open?'open':''}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="week-body ${open?'open':''}">
+      ${days.map(d=>renderDayRow(d)).join('')}
+      ${!isRaceWeek?`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg4);border-radius:8px;padding:9px 12px;margin-top:2px">
+        <span style="font-size:11px;color:var(--text3)">Saturday & Sunday</span>
+        <span class="badge badge-blue">Rest Days</span>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderDayRow(log){
+  const d=pDate(log.date);
+  const isRest=log.isRest||log.isRecover;
+  const isRace=log.isRace;
+  const pace=log.actualMiles&&log.actualDuration ? (()=>{const p=log.actualDuration/log.actualMiles; return Math.floor(p)+':'+(Math.round((p%1)*60)).toString().padStart(2,'0')})():null;
+  const delta=log.actualMiles&&log.scheduledMiles ? (log.actualMiles-log.scheduledMiles).toFixed(1):null;
+
+  return `<div class="day-row ${log.isCompleted?'day-complete':''} ${isRace?'':''}">
+    <div class="day-row-top" onclick="toggleDay('${log.date}')">
+      <div style="width:38px;height:38px;border-radius:9px;background:${log.isCompleted?'rgba(249,115,22,0.12)':isRace?'rgba(239,68,68,0.1)':isRest?'var(--bg4)':'var(--bg4)'};border:1px solid ${log.isCompleted?'rgba(249,115,22,0.3)':isRace?'rgba(239,68,68,0.3)':'var(--border)'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="font-size:8px;font-weight:700;color:${log.isCompleted?'var(--orange)':isRace?'var(--red)':'var(--text3)'};letter-spacing:0.3px">${d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()}</span>
+        <span style="font-size:15px;font-weight:700;color:${log.isCompleted?'var(--orange)':isRace?'var(--red)':'var(--text)'};line-height:1.1">${d.getDate()}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${log.isCompleted?'var(--orange)':isRace?'var(--red)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${log.dayShort} · ${log.scheduledLabel}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;gap:8px">
+          ${!isRest&&!isRace?`<span>${log.scheduledMiles} mi scheduled</span>`:isRace?'<span style="color:var(--red)">100 Miles — Daytona Beach, FL</span>':'<span>Recovery</span>'}
+          ${log.actualMiles?`<span style="color:${parseFloat(delta)>=0?'var(--green)':'var(--red)'}">✓ ${log.actualMiles}mi (${parseFloat(delta)>=0?'+':''}${delta})</span>`:''}
+        </div>
+      </div>
+      ${!isRest&&!isRace?`
+      <div onclick="event.stopPropagation();openEdit('${log.date}')" style="color:var(--text3);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--bg4);flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>`:''}
+    </div>
+    ${!isRest&&!isRace?`
+    <div class="day-expand" id="exp-${log.date}">
+      <div class="g2">
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">SCHEDULED</div><div style="font-size:15px;font-weight:700;color:var(--orange)">${log.scheduledMiles} mi</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">LOGGED</div><div style="font-size:15px;font-weight:700">${log.actualMiles||'—'}${log.actualMiles?' mi':''}</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">DURATION</div><div style="font-size:15px;font-weight:700">${log.actualDuration?log.actualDuration+' min':'—'}</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">PACE</div><div style="font-size:15px;font-weight:700">${pace?pace+'/mi':'—'}</div></div>
+      </div>
+      ${log.notes?`<div style="background:var(--bg4);border-radius:7px;padding:9px 11px;font-size:12px;color:var(--text2)">${log.notes}</div>`:''}
+      <div class="g2">
+        <button class="btn-ghost" onclick="toggleComplete('${log.date}')">${log.isCompleted?'✓ Complete':'Mark Done'}</button>
+        <button class="btn-outline" onclick="openEdit('${log.date}')">Log Run</button>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+// ===================== ANALYTICS =====================
+function renderAnalytics(){
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Analytics</h1>
+      <div style="font-size:11px;color:var(--text3)">Training volume</div>
+    </div>
+
+    <div class="section-title">Weekly Mileage — Scheduled vs Actual</div>
+    <div style="padding:0 16px;margin-bottom:14px">
+      <div class="card" style="padding:12px">
+        <div style="display:flex;gap:14px;margin-bottom:10px;font-size:11px">
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:3px;background:rgba(249,115,22,0.5);display:inline-block"></span><span style="color:var(--text3)">Scheduled</span></span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:3px;background:#f97316;display:inline-block"></span><span style="color:var(--text3)">Logged</span></span>
+        </div>
+        <div class="chart-container"><canvas id="mChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">Cumulative Miles</div>
+    <div style="padding:0 16px;margin-bottom:14px">
+      <div class="card" style="padding:12px">
+        <div class="chart-container"><canvas id="cumChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">Plan Breakdown</div>
+    <div style="padding:0 16px 24px">
+      <div class="card">
+        ${[
+          ['Total Plan Miles', totalScheduledMiles()+' mi'],
+          ['Miles Logged', totalActualMiles().toFixed(1)+' mi'],
+          ['Total Run Days', totalRunDays()],
+          ['Days Completed', completedCount()],
+          ['Peak Week', 'Wk '+peakWeek().wk+' — '+peakWeek().miles+' mi'],
+          ['Training Weeks', '28'],
+          ['Race Distance', '100 Miles'],
+          ['Race Date', 'Dec 12, 2026'],
+        ].map(([k,v])=>`<div class="stat-row"><span style="font-size:13px;color:var(--text2)">${k}</span><span style="font-size:13px;font-weight:700;color:var(--orange)">${v}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+let chartObjs={};
+function initCharts(){
+  if(S.chartInited) return;
+  if(typeof Chart==='undefined') return;
+  S.chartInited=true;
+  setTimeout(()=>{
+    Object.values(chartObjs).forEach(c=>c.destroy());
+    chartObjs={};
+
+    // Mileage chart
+    const mlabs=[], msched=[], mact=[];
+    for(let w=1;w<=28;w++){
+      mlabs.push('W'+w);
+      msched.push(wkMiles(w));
+      const a=wkActualMiles(w);
+      mact.push(a>0?a:null);
+    }
+    const mc=document.getElementById('mChart');
+    if(mc) chartObjs.m=new Chart(mc,{
+      type:'bar',
+      data:{labels:mlabs,datasets:[
+        {label:'Scheduled',data:msched,backgroundColor:'rgba(249,115,22,0.25)',borderRadius:3,borderSkipped:false},
+        {label:'Logged',data:mact,backgroundColor:'#f97316',borderRadius:3,borderSkipped:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#52525b',font:{size:8},maxRotation:0},grid:{display:false},border:{color:'rgba(255,255,255,0.06)'}},
+          y:{ticks:{color:'#52525b',font:{size:9},callback:v=>v+'mi'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+        }
+      }
+    });
+
+    // Cumulative chart
+    const clabs=[], csched=[], cact=[];
+    let cumS=0,cumA=0;
+    for(let w=1;w<=28;w++){
+      cumS+=wkMiles(w);
+      const a=wkActualMiles(w);
+      if(a>0) cumA+=a;
+      clabs.push('W'+w);
+      csched.push(parseFloat(cumS.toFixed(1)));
+      cact.push(cumA>0?parseFloat(cumA.toFixed(1)):null);
+    }
+    const cc=document.getElementById('cumChart');
+    if(cc) chartObjs.c=new Chart(cc,{
+      type:'line',
+      data:{labels:clabs,datasets:[
+        {label:'Scheduled',data:csched,borderColor:'rgba(249,115,22,0.4)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.4,fill:false},
+        {label:'Logged',data:cact,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.08)',borderWidth:2,pointRadius:0,tension:0.4,fill:true,spanGaps:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#52525b',font:{size:8},maxRotation:0,maxTicksLimit:10,autoSkip:true},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+          y:{ticks:{color:'#52525b',font:{size:9},callback:v=>v+'mi'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+        }
+      }
+    });
+  },80);
+}
+
+// ===================== SETTINGS =====================
+function renderSettings(){
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Strategy</h1>
+      <div style="font-size:11px;color:var(--text3)">100-Mile Blueprint</div>
+    </div>
+    <div class="section-title">Training Principles</div>
+    <div style="padding:0 16px;margin-bottom:4px">
+      ${[
+        ['Monday — Easy Run','Aerobic recovery effort. Zone 2, conversational pace. No heroics.','var(--green)'],
+        ['Tuesday — Moderate Run','Controlled intensity. Comfortably hard — build endurance without destroying legs.','var(--amber)'],
+        ['Wednesday — Easy Run','Second easy day. Keep HR low, focus on time on feet.','var(--green)'],
+        ['Thursday — Long Run','The week\'s centerpiece. Back-to-back fatigue training. Zone 2 all day.','var(--orange)'],
+        ['Friday — Easy Run','Flush the legs before the weekend. Shake-out pace, keep it short.','var(--blue)'],
+        ['Sat & Sun — Rest','Full recovery. Eat, sleep, repeat. These days make the training work.','var(--purple)'],
+        ['Recovery Weeks','Weeks 4, 8, 12, 16, 20: reduced volume to let adaptation set in. Don\'t skip them.','var(--red)'],
+        ['Race Week (Wk 28)','Monday short shakeout. Tue–Wed complete rest. Saturday: Daytona 100.','var(--red)'],
+      ].map(([t,d,c])=>`<div class="rule-card" style="--c:${c}"><div class="rule-title">${t}</div><div class="rule-desc">${d}</div></div>`).join('')}
+    </div>
+    <div class="section-title">Race Details</div>
+    <div style="padding:0 16px;margin-bottom:8px">
+      <div class="card">
+        ${[
+          ['Event','Daytona 100 — 100 Miles'],
+          ['Race Date','December 12, 2026'],
+          ['Location','Daytona Beach, FL'],
+          ['Training Start','June 1, 2026'],
+          ['Training Duration','28 Weeks'],
+          ['Total Plan Miles', totalScheduledMiles()+' miles'],
+          ['Peak Week','Week 21 — 120 miles'],
+        ].map(([k,v])=>`<div class="stat-row"><span style="font-size:12px;color:var(--text3)">${k}</span><span style="font-size:13px;font-weight:700">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="section-title">Data</div>
+    <div style="padding:0 16px 30px">
+      <button class="btn-danger" onclick="resetAll()">⚠ Reset to Factory Defaults</button>
+      <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:8px">Erases all logged run data. Cannot be undone.</div>
+    </div>
+  </div>`;
+}
+
+// ===================== MODAL =====================
+function openEdit(date){
+  S.editDate=date;
+  const log=S.logs.find(l=>l.date===date);
+  if(!log||log.isRest||log.isRace) return;
+  const d=pDate(date);
+
+  document.getElementById('modal-root').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:16px;font-weight:700">${log.dayName} — ${fmtDate(d)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${log.scheduledLabel}</div>
+          </div>
+          <button onclick="closeModal()" style="background:var(--bg4);border:none;color:var(--text3);cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="g2">
+            <div><label class="field-label">Actual Miles</label><input type="number" id="m-mi" value="${log.actualMiles||''}" placeholder="${log.scheduledMiles}" step="0.1"></div>
+            <div><label class="field-label">Duration (min)</label><input type="number" id="m-dur" value="${log.actualDuration||''}" placeholder="e.g. 90" step="1"></div>
+          </div>
+          <div><label class="field-label">Notes</label><textarea id="m-notes" rows="2" placeholder="How did it feel? Terrain, weather, HR...">${log.notes||''}</textarea></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg4);border-radius:9px;padding:11px 13px">
+            <span style="font-size:13px;font-weight:600">Mark Run Complete</span>
+            <div class="toggle ${log.isCompleted?'on':''}" id="modal-toggle" onclick="toggleComplete('${date}');document.getElementById('modal-toggle').classList.toggle('on')"></div>
+          </div>
+          <button class="btn-primary" onclick="saveEdit('${date}')">Save Run</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeModal(){
+  document.getElementById('modal-root').innerHTML='';
+  S.editDate=null;
+}
+
+// ===================== ACTIONS =====================
+window.toggleComplete=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  log.isCompleted=!log.isCompleted;
+  save(); render();
+  if(S.editDate) openEdit(date);
+  toast(log.isCompleted?'✓ Miles in the bank!':'Run unmarked');
+};
+
+window.toggleDay=function(date){
+  const el=document.getElementById('exp-'+date);
+  if(el) el.classList.toggle('open');
+};
+
+window.toggleWk=function(wk){
+  if(S.openWeeks.has(wk)) S.openWeeks.delete(wk);
+  else S.openWeeks.add(wk);
+  save(); render();
+};
+
+window.setSF=function(f){ S.schedFilter=f; render(); };
+window.openEdit=openEdit;
+window.closeModal=closeModal;
+
+window.quickLog=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  const mi=document.getElementById('ql-mi'), dur=document.getElementById('ql-dur');
+  let changed=false;
+  if(mi&&mi.value){ log.actualMiles=parseFloat(mi.value); changed=true; }
+  if(dur&&dur.value){ log.actualDuration=parseFloat(dur.value); changed=true; }
+  if(changed){ save(); render(); toast('Run logged! 🏃'); }
+  else toast('Nothing entered');
+};
+
+window.saveEdit=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  const mi=document.getElementById('m-mi'),dur=document.getElementById('m-dur'),notes=document.getElementById('m-notes');
+  if(mi&&mi.value) log.actualMiles=parseFloat(mi.value);
+  if(dur&&dur.value) log.actualDuration=parseFloat(dur.value);
+  if(notes&&notes.value) log.notes=notes.value;
+  save(); closeModal(); render(); toast('Saved!');
+};
+
+window.resetAll=function(){
+  if(!confirm('Reset all run data to factory defaults? Cannot be undone.')) return;
+  S.logs=buildLogs(); S.openWeeks=new Set([1]);
+  try{ localStorage.removeItem('d100_logs'); localStorage.removeItem('d100_openWeeks'); }catch(e){}
+  render(); toast('Reset complete');
+};
+
+window.setTab=setTab;
+
+// Load Chart.js
+const cs=document.createElement('script');
+cs.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+cs.onload=()=>{ if(S.tab==='analytics') initCharts(); };
+document.head.appendChild(cs);
+
+render();
+</script>
+</body>
+</html>
