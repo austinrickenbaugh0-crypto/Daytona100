@@ -93,7 +93,7 @@ textarea:focus{border-color:rgba(249,115,22,0.5)}
 .race-card{background:linear-gradient(135deg,rgba(249,115,22,0.08),rgba(249,115,22,0.02));border:1px solid rgba(249,115,22,0.22);border-radius:14px;padding:16px}
 
 /* Stat row */
-.stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border) Tier}
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
 .stat-row:last-child{border-bottom:none}
 
 /* Modal */
@@ -125,7 +125,7 @@ textarea:focus{border-color:rgba(249,115,22,0.5)}
 .top-bar h1{font-size:22px;font-weight:700}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.flex{display:flex}.aic silent{align-items:center}.jcb{justify-content:space-between}
+.flex{display:flex}.aic{align-items:center}.jcb{justify-content:space-between}
 .pb-nav{padding-bottom:88px}
 .big-num{font-size:28px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums;line-height:1}
 
@@ -523,7 +523,7 @@ function renderSchedule(){
 function renderWeek(wk){
   const open = S.openWeeks.has(wk);
   const days = S.logs.filter(l=>l.weekNumber===wk);
-  const runDays = days.filter(d=>!d.isRest&&d.isRecover&&!d.isRace);
+  const runDays = days.filter(d=>!d.isRest&&!d.isRecover&&!d.isRace);
   const done = runDays.filter(d=>d.isCompleted).length;
   const allDone = done===runDays.length && runDays.length>0;
   const sched = wkMiles(wk);
@@ -660,7 +660,7 @@ function initCharts(){
       type:'bar',
       data:{labels:mlabs,datasets:[
         {label:'Scheduled',data:msched,backgroundColor:'rgba(249,115,22,0.25)',borderRadius:3,borderSkipped:false},
-        {label:'Logged',data:mact,backgroundColor:#f97316,borderRadius:3,borderSkipped:false}
+        {label:'Logged',data:mact,backgroundColor:'#f97316',borderRadius:3,borderSkipped:false}
       ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false}},
@@ -848,5 +848,3 @@ render();
 </script>
 </body>
 </html>
-
-```
