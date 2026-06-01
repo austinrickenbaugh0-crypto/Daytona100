@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Project Hail Mary</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#09090b;--bg2:#0f0f12;--bg3:#1a1a1f;--bg4:#222228;--bg5:#2a2a32;
+  --border:#252530;--border2:#30303c;
+  --green:#22c55e;--green2:#16a34a;--green-dim:rgba(34,197,94,0.1);--green-glow:rgba(34,197,94,0.18);
+  --text:#f4f4f5;--text2:#a1a1aa;--text3:#52525b;
+  --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--purple:#a855f7;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative;background:var(--bg)}
+
+/* Scrollable content area */
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+#content::-webkit-scrollbar{width:2px}
+#content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:1px}
+
+/* Bottom Nav */
+#nav{background:rgba(9,9,11,0.97);border-top:1px solid var(--border);display:flex;flex-shrink:0;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 16px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.15s}
+.nav-btn.active{color:var(--green)}
+.nav-btn svg{width:20px;height:20px;stroke-width:2}
+
+/* Cards */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card-sm{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px}
+.card-xs{background:var(--bg4);border-radius:8px;padding:8px 10px}
+
+/* Section title */
+.section-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;padding:18px 16px 8px}
+
+/* Progress bar */
+.progress-track{height:5px;background:var(--bg5);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green2),var(--green));border-radius:3px;transition:width 0.8s cubic-bezier(.4,0,.2,1)}
+
+/* Form elements */
+.field-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:0.3px;display:block;margin-bottom:5px}
+input[type=text],input[type=number]{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;padding:11px 13px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input[type=text]:focus,input[type=number]:focus{border-color:rgba(34,197,94,0.5);box-shadow:0 0 0 3px rgba(34,197,94,0.08)}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+textarea{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;width:100%;outline:none;resize:none;font-family:inherit}
+textarea:focus{border-color:rgba(34,197,94,0.5)}
+
+/* Buttons */
+.btn-primary{background:var(--green);color:#000;font-size:14px;font-weight:700;padding:13px;border-radius:10px;border:none;cursor:pointer;width:100%;letter-spacing:0.2px;transition:transform 0.1s,opacity 0.1s}
+.btn-primary:active{transform:scale(0.97);opacity:0.9}
+.btn-outline{background:transparent;color:var(--green);border:1px solid rgba(34,197,94,0.35);font-size:13px;font-weight:600;padding:10px 16px;border-radius:8px;cursor:pointer;transition:background 0.15s}
+.btn-outline:active{background:var(--green-dim)}
+.btn-ghost{background:var(--bg4);color:var(--text2);border:1px solid var(--border2);font-size:12px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.25);font-size:13px;font-weight:600;padding:12px;border-radius:10px;cursor:pointer;width:100%;transition:background 0.15s}
+.btn-danger:active{background:rgba(239,68,68,0.08)}
+
+/* Toggle switch */
+.toggle{width:46px;height:26px;background:var(--bg5);border:1.5px solid var(--border2);border-radius:13px;position:relative;cursor:pointer;transition:background 0.2s,border-color 0.2s;flex-shrink:0;display:inline-block}
+.toggle.on{background:var(--green);border-color:var(--green)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.3px}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--green)}
+.badge-amber{background:rgba(245,158,11,0.12);color:var(--amber)}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--red)}
+.badge-blue{background:rgba(59,130,246,0.12);color:var(--blue)}
+.badge-purple{background:rgba(168,85,247,0.12);color:var(--purple)}
+
+/* Green completed day */
+.day-complete{background:rgba(34,197,94,0.06)!important;border-color:rgba(34,197,94,0.28)!important}
+
+/* Week accordion */
+.week-block{border-bottom:1px solid var(--border)}
+.week-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;background:var(--bg2)}
+.week-header:active{background:rgba(255,255,255,0.02)}
+.week-body{display:none;padding:6px 12px 8px}
+.week-body.open{display:block}
+.chevron-icon{transition:transform 0.2s;color:var(--text3)}
+.chevron-icon.open{transform:rotate(180deg)}
+
+/* Day row */
+.day-row{border:1px solid var(--border);border-radius:10px;margin-bottom:5px;overflow:hidden;transition:border-color 0.3s,background 0.3s}
+.day-row-top{display:flex;align-items:center;gap:10px;padding:10px 11px;cursor:pointer}
+.day-expand{display:none;padding:0 11px 11px;flex-direction:column;gap:8px}
+.day-expand.open{display:flex}
+
+/* Hero / Today card */
+.hero-card{background:linear-gradient(145deg,#111116,#17171e);border:1px solid var(--border2);border-radius:18px;padding:18px;margin:14px 16px;position:relative;overflow:hidden}
+.hero-card::after{content:'';position:absolute;top:-50px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.07),transparent 65%);pointer-events:none}
+
+/* Race card */
+.race-card{background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(34,197,94,0.02));border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:16px}
+
+/* Stat row */
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-sheet{background:var(--bg2);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:16px 16px 32px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;animation:slideUp 0.22s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px}
+
+/* Toast */
+.toast{position:fixed;top:22px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:13px;font-weight:700;padding:9px 20px;border-radius:24px;z-index:400;white-space:nowrap;pointer-events:none;animation:toastIn 0.2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Charts */
+.chart-container{position:relative;width:100%;height:220px}
+
+/* Grid helpers */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.flex{display:flex}.aic{align-items:center}.jcb{justify-content:space-between}.gap2{gap:8px}.gap3{gap:12px}
+.pb-nav{padding-bottom:88px}
+.text-green{color:var(--green)}.text-amber{color:var(--amber)}.text-red{color:var(--red)}.text-muted{color:var(--text3)}.text-sm{font-size:13px}.text-xs{font-size:11px}.fw7{font-weight:700}.fw6{font-weight:600}
+.big-num{font-size:28px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;line-height:1}
+
+/* Tab pills */
+.tab-row{display:flex;gap:7px;padding:0 16px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-row::-webkit-scrollbar{display:none}
+.tab-pill{flex-shrink:0;font-size:11px;font-weight:600;padding:6px 13px;border-radius:20px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text3);transition:all 0.12s;letter-spacing:0.2px}
+.tab-pill.active{background:var(--green-dim);color:var(--green);border-color:rgba(34,197,94,0.3)}
+
+/* Header bar */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 4px}
+.top-bar h1{font-size:22px;font-weight:700}
+
+/* Rule card */
+.rule-card{border-left:2px solid var(--c,var(--green));border-radius:0 9px 9px 0;background:var(--bg3);padding:10px 13px;margin-bottom:7px}
+.rule-title{font-size:12px;font-weight:700;color:var(--c,var(--green));margin-bottom:3px}
+.rule-desc{font-size:11px;color:var(--text3);line-height:1.55}
+
+/* Responsive padding */
+@media(max-width:380px){.hero-card{padding:14px;margin:10px 12px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="content"></div>
+  <nav id="nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="setTab('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Today
+    </button>
+    <button class="nav-btn" id="nav-schedule" onclick="setTab('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule
+    </button>
+    <button class="nav-btn" id="nav-analytics" onclick="setTab('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Charts
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="setTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Strategy
+    </button>
+  </nav>
+</div>
+<div id="modal-root"></div>
+
+<script>
+// ===================== DATA =====================
+const START = new Date('2025-05-25T00:00:00');
+const RACE  = new Date('2026-11-22T00:00:00');
+const CUT   = new Date('2025-08-30T00:00:00');
+const SW = 204.8, TW = 180.0;
+
+const DAYS_OF_WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function dStr(d){ return d.toISOString().split('T')[0]; }
+function pDate(s){ const [y,m,d]=s.split('-'); return new Date(y,m-1,d); }
+function fmtDate(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function dow(d){ return DAYS_OF_WEEK[d.getDay()]; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+
+function projWeight(date){
+  const totalMs = CUT - START;
+  const dayMs = date - START;
+  if(dayMs <= 0) return SW;
+  if(date > CUT) return TW;
+  return SW - (SW-TW)*(dayMs/totalMs);
+}
+
+function isRunDay(d){ return ['Monday','Wednesday','Thursday','Saturday'].includes(d); }
+function stepTarget(d){ return isRunDay(d) ? null : 10000; }
+function parseMi(s){ const m=s.match(/(\d+\.?\d*)\s*[Mm]i/); return m?parseFloat(m[1]):null; }
+
+const SCHED = [
+['2025-05-25','3.50 Mi Easy Run + Upper Lift',1700],['2025-05-26','Rest Day',1700],
+['2025-05-27','3.20 Mi Tempo Run',1700],['2025-05-28','2.75 Mi Easy Run + Lower Lift',1700],
+['2025-05-29','Rest Day',1700],['2025-05-30','4.50 Mi Long Run',1700],
+['2025-05-31','Full Body Lift',1700],['2025-06-01','3.50 Mi Easy Run + Lower',1700],
+['2025-06-02','Rest Day',1700],['2025-06-03','4.00 Mi Intervals',1700],
+['2025-06-04','2.75 Mi Easy Run + Upper Lift',1700],['2025-06-05','Rest Day',1700],
+['2025-06-06','5.00 Mi Long Run',2200],['2025-06-07','Full Body Lift',1700],
+['2025-06-08','3.50 Mi Easy Run + Upper Lift',1700],['2025-06-09','Rest Day',1700],
+['2025-06-10','4.00 Mi Tempo Run',1700],['2025-06-11','3.50 Mi Easy Run + Lower Lift',1700],
+['2025-06-12','Rest Day',1700],['2025-06-13','6.00 Mi Long Run',2300],
+['2025-06-14','Full Body Lift',1700],['2025-06-15','3.00 Mi Easy Run + Upper Lift',1700],
+['2025-06-16','Rest Day',1700],['2025-06-17','3.00 Mi Tempo Run',1700],
+['2025-06-18','2.50 Mi Easy Run + Lower Lift',1700],['2025-06-19','Rest Day',1700],
+['2025-06-20','3.75 Mi Long Run',1700],['2025-06-21','Full Body Lift',1700],
+['2025-06-22','3.50 Mi Easy Run + Upper Lift',1700],['2025-06-23','Rest Day',1700],
+['2025-06-24','4.10 Mi Intervals',1700],['2025-06-25','3.50 Mi Easy Run + Lower Lift',1700],
+["2025-06-26","Rest Day [Bri's Birthday - CHEAT DAY]",'UNLIMITED'],
+['2025-06-27','6.00 Mi Long Run [Deficit Day 1]',2300],
+['2025-06-28','Full Body Lift [Deficit Day 2]',1700],
+['2025-06-29','4.00 Mi Easy Run + Upper Lift',1700],['2025-06-30','Rest Day',1700],
+['2025-07-01','3.90 Mi Tempo Run',1700],['2025-07-02','3.25 Mi Easy Run + Lower Lift',1700],
+['2025-07-03','Rest Day',1700],['2025-07-04','5K Race [Race Day]',2400],
+['2025-07-05','Full Body Lift',1700],['2025-07-06','3.75 Mi Easy Run + Upper Lift',1700],
+['2025-07-07','Rest Day',1700],['2025-07-08','4.00 Mi Tempo Run',1700],
+['2025-07-09','3.50 Mi Easy Run + Lower Lift',1700],['2025-07-10','Rest Day',1700],
+['2025-07-11','6.50 Mi Long Run',2350],['2025-07-12','Full Body Lift',1700],
+['2025-07-13','3.25 Mi Easy Run + Upper Lift',1700],['2025-07-14','Rest Day',1700],
+['2025-07-15','3.30 Mi Time Trial',1700],['2025-07-16','3.00 Mi Easy Run + Lower Lift',1700],
+['2025-07-17','Rest Day',1700],['2025-07-18','4.50 Mi Long Run',1700],
+['2025-07-19','Full Body Lift',1700],['2025-07-20','4.50 Mi Easy Run + Upper Lift',1700],
+['2025-07-21','Rest Day',1700],['2025-07-22','4.00 Mi Tempo Run',1700],
+['2025-07-23','4.00 Mi Easy Run + Lower Lift',1700],['2025-07-24','Rest Day',1700],
+['2025-07-25','7.00 Mi Long Run',2400],['2025-07-26','Full Body Lift',1700],
+['2025-07-27','4.50 Mi Easy Run + Upper Lift',1700],['2025-07-28','Rest Day',1700],
+['2025-07-29','4.50 Mi Tempo Run',1700],['2025-07-30','4.50 Mi Easy Run + Lower Lift',1700],
+['2025-07-31','Rest Day',1700],['2025-08-01','7.50 Mi Long Run',2450],
+['2025-08-02','Full Body Lift',1700],['2025-08-03','5.50 Mi Easy Run + Upper Lift',1700],
+['2025-08-04','Rest Day',1700],['2025-08-05','5.00 Mi Intervals',1700],
+['2025-08-06','3.50 Mi Easy Run + Lower Lift',1700],['2025-08-07','Rest Day',1700],
+['2025-08-08','7.50 Mi Long Run',2450],['2025-08-09','Full Body Lift',1700],
+['2025-08-10','4.00 Mi Easy Run + Upper Lift',1700],['2025-08-11','Rest Day',1700],
+['2025-08-12','3.50 Mi Tempo Run',1700],['2025-08-13','3.25 Mi Easy Run + Lower Lift',1700],
+['2025-08-14','Rest Day',1700],['2025-08-15','5.00 Mi Long Run',2200],
+['2025-08-16','Full Body Lift',1700],['2025-08-17','4.50 Mi Easy Run + Upper Lift',1700],
+['2025-08-18','Rest Day',1700],['2025-08-19','5.00 Mi Tempo Run',1700],
+['2025-08-20','4.50 Mi Easy Run + Lower Lift',1700],['2025-08-21','Rest Day',1700],
+['2025-08-22','8.50 Mi Long Run',2550],['2025-08-23','Full Body Lift',1700],
+['2025-08-24','5.00 Mi Easy Run + Upper Lift',1700],['2025-08-25','Rest Day',1700],
+['2025-08-26','5.00 Mi Intervals',1700],['2025-08-27','4.00 Mi Easy Run + Lower Lift',1700],
+['2025-08-28','Rest Day',1700],['2025-08-29','8.50 Mi Long Run',2550],
+['2025-08-30','Full Body Lift',1700],['2025-08-31','5.00 Mi Easy Run',2500],
+['2025-09-01','Rest Day',2000],['2025-09-02','5.00 Mi Tempo Run',2500],
+['2025-09-03','4.00 Mi Easy Run',2400],['2025-09-04','Full Body Lift',2000],
+['2025-09-05','9.00 Mi Long Run',2900],['2025-09-06','Rest Day [175 Met]',2000],
+['2025-09-07','4.00 Mi Easy Run',2400],['2025-09-08','Rest Day',2000],
+['2025-09-09','3.90 Mi Time Trial',2300],['2025-09-10','3.25 Mi Easy Run',2300],
+['2025-09-11','Full Body Lift',2000],['2025-09-12','5.00 Mi Long Run',2500],
+['2025-09-13','Rest Day [Cut Complete]',2000],
+['2025-09-14','4.50 Mi Easy Run [MAINTENANCE]',2450],['2025-09-15','Rest Day',2000],
+['2025-09-16','5.10 Mi Intervals',2510],['2025-09-17','4.50 Mi Easy Run',1700],
+['2025-09-18','Full Body Lift',1700],
+['2025-09-19','9.50 Mi Long Run [Shaky Knees - CHEAT DAY]','UNLIMITED'],
+['2025-09-20','Rest Day [Shaky Knees - Deficit Day 1]',2000],
+['2025-09-21','5.50 Mi Easy Run [Shaky Knees - Deficit Day 2]',2000],
+['2025-09-22','Rest Day',1700],['2025-09-23','5.00 Mi Tempo Run',2000],
+['2025-09-24','5.00 Mi Easy Run',2000],['2025-09-25','Full Body Lift',1700],
+['2025-09-26','10.00 Mi Long Run',3000],['2025-09-27','Rest Day',2000],
+['2025-09-28','5.50 Mi Easy Run',2550],['2025-09-29','Rest Day',2000],
+['2025-09-30','5.50 Mi Tempo Run',2550],['2025-10-01','5.50 Mi Easy Run',2550],
+['2025-10-02','Full Body Lift',2000],['2025-10-03','11.00 Mi Long Run',3100],
+['2025-10-04','Rest Day',2000],['2025-10-05','6.00 Mi Easy Run',2600],
+['2025-10-06','Rest Day',2000],['2025-10-07','5.50 Mi Intervals',2550],
+['2025-10-08','5.00 Mi Easy Run',2500],['2025-10-09','Full Body Lift',2000],
+['2025-10-10','12.00 Mi Long Run',3200],['2025-10-11','Rest Day',2000],
+['2025-10-12','5.00 Mi Easy Run',2500],['2025-10-13','Rest Day',2000],
+['2025-10-14','3.80 Mi Tempo Run',2380],['2025-10-15','3.75 Mi Easy Run',2375],
+['2025-10-16','Full Body Lift',2000],['2025-10-17','6.50 Mi Long Run',2650],
+['2025-10-18','Rest Day',2000],['2025-10-19','5.50 Mi Easy Run',2550],
+['2025-10-20','Rest Day',2000],['2025-10-21','5.00 Mi Tempo Run',2500],
+['2025-10-22','5.50 Mi Easy Run',2550],['2025-10-23','Full Body Lift',2000],
+['2025-10-24','13.10 Mi Long Run',3310],['2025-10-25','Rest Day',2000],
+['2025-10-26','6.00 Mi Easy Run',2600],['2025-10-27','Rest Day',2000],
+['2025-10-28','5.50 Mi Intervals',2550],['2025-10-29','5.00 Mi Easy Run',2500],
+['2025-10-30','Full Body Lift',2000],['2025-10-31','12.00 Mi Long Run',3200],
+['2025-11-01','Rest Day',2000],['2025-11-02','5.50 Mi Easy Run',2550],
+['2025-11-03','Rest Day',2000],['2025-11-04','4.50 Mi Tempo Run',2450],
+['2025-11-05','5.50 Mi Easy Run',2000],
+['2025-11-06','Full Body Lift [My Birthday - CHEAT DAY]','UNLIMITED'],
+['2025-11-07','10.00 Mi Run [Deficit Day 1]',1700],
+['2025-11-08','Rest Day [Deficit Day 2]',1700],
+['2025-11-09','5.50 Mi Easy Run',2550],['2025-11-10','Rest Day',2000],
+['2025-11-11','3.80 Mi Tempo Run',2380],['2025-11-12','5.00 Mi Easy Run',2500],
+['2025-11-13','Full Body Lift + Core',2000],['2025-11-14','7.50 Mi Long Run',2750],
+['2025-11-15','Rest Day',2000],['2025-11-16','Rest Day',2000],
+['2025-11-17','4.00 Mi Taper Intervals',2400],['2025-11-18','Rest Day',2000],
+['2025-11-19','3.75 Mi Easy Run',2375],['2025-11-20','Full Body Lift & Stretching',2000],
+['2025-11-21','Pre-Race Rest & Carb Load',2500],
+['2025-11-22','13.10 Mi HALF MARATHON RACE',3310],
+];
+
+function buildLogs(){
+  return SCHED.map(([date,workout,cal],i) => {
+    const d = pDate(date);
+    const dayName = dow(d);
+    const wk = Math.floor(i/7)+1;
+    const pw = Math.round(projWeight(d)*10)/10;
+    const mi = parseMi(workout);
+    return {
+      date, dayOfWeek:dayName, weekNumber:wk,
+      scheduledWorkout:workout, actualWorkoutCompleted:'',
+      targetCalories:cal, actualCalories:null,
+      stepTarget:stepTarget(dayName), actualSteps:null,
+      projectedWeight:pw, actualWeight:null,
+      runDistance:mi, runDuration:null,
+      isCompleted:false
+    };
+  });
+}
+
+// ===================== STATE =====================
+let S = {
+  tab:'dashboard',
+  logs: buildLogs(),
+  openWeeks: new Set([1]),
+  editDate: null,
+  schedFilter:'all',
+  chartInited:false
+};
+
+(function loadStorage(){
+  try {
+    const raw = localStorage.getItem('phm2_logs');
+    if(raw){ const p=JSON.parse(raw); if(Array.isArray(p)&&p.length===SCHED.length) S.logs=p; }
+    const ow = localStorage.getItem('phm2_openWeeks');
+    if(ow) S.openWeeks = new Set(JSON.parse(ow));
+  } catch(e){}
+})();
+
+function save(){
+  try{
+    localStorage.setItem('phm2_logs', JSON.stringify(S.logs));
+    localStorage.setItem('phm2_openWeeks', JSON.stringify([...S.openWeeks]));
+  } catch(e){}
+}
+
+// ===================== CALCULATIONS =====================
+function hmPredict(){
+  const runs = S.logs.filter(l=>l.runDistance&&l.runDuration&&l.runDuration>0);
+  if(!runs.length) return null;
+  const l = runs[runs.length-1];
+  const T2 = l.runDuration * Math.pow(13.1/l.runDistance, 1.06);
+  const sec = Math.round(T2*60);
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  const pace=T2/13.1, pm=Math.floor(pace), ps=Math.round((pace-pm)*60);
+  return {
+    time:`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`,
+    pace:`${pm}:${String(ps).padStart(2,'0')}`,
+    rawMin:T2, date:fmtDate(pDate(l.date))
+  };
+}
+
+function wkMiles(wk){ return S.logs.filter(l=>l.weekNumber===wk&&l.runDistance).reduce((s,l)=>s+(l.runDistance||0),0); }
+
+function currentWkInfo(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  for(let i=0;i<S.logs.length;i++){
+    const d=pDate(S.logs[i].date); d.setHours(0,0,0,0);
+    if(d>=now) return {wk:S.logs[i].weekNumber, miles:wkMiles(S.logs[i].weekNumber)};
+  }
+  return {wk:26, miles:wkMiles(26)};
+}
+
+function todayLog(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const found = S.logs.find(l=>{ const d=pDate(l.date); d.setHours(0,0,0,0); return d.getTime()===now.getTime(); });
+  return found || S.logs.find(l=>!l.isCompleted) || S.logs[0];
+}
+
+function latestWeight(){
+  const w=S.logs.filter(l=>l.actualWeight);
+  return w.length ? w[w.length-1].actualWeight : SW;
+}
+
+function completedCount(){ return S.logs.filter(l=>l.isCompleted).length; }
+
+function daysToRace(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  return Math.max(0,Math.round((RACE-now)/(86400000)));
+}
+
+// ===================== TOAST =====================
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',1800);
+  setTimeout(()=>el.remove(),2100);
+}
+
+// ===================== RENDER =====================
+function render(){
+  const c=document.getElementById('content');
+  c.innerHTML = S.tab==='dashboard' ? renderDash()
+              : S.tab==='schedule'  ? renderSchedule()
+              : S.tab==='analytics' ? renderAnalytics()
+              : renderSettings();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+S.tab);
+  if(nb) nb.classList.add('active');
+  if(S.tab==='analytics') initCharts();
+  // Restore open days
+  document.querySelectorAll('[data-expand]').forEach(el=>{
+    // just register click handlers
+  });
+}
+
+function setTab(t){
+  S.tab=t; S.chartInited=false;
+  render();
+  document.getElementById('content').scrollTop=0;
+}
+
+// ===================== DASHBOARD =====================
+function renderDash(){
+  const tl=todayLog();
+  const lw=latestWeight();
+  const wpct=Math.max(0,Math.min(100,((SW-lw)/(SW-TW))*100));
+  const pred=hmPredict();
+  const {wk,miles}=currentWkInfo();
+  const done=completedCount();
+  const dr=daysToRace();
+  const isCheat=tl.targetCalories==='UNLIMITED';
+  const d=pDate(tl.date);
+
+  const isToday=(()=>{
+    const n=new Date(); n.setHours(0,0,0,0);
+    const td=pDate(tl.date); td.setHours(0,0,0,0);
+    return n.getTime()===td.getTime();
+  })();
+
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase">Project Hail Mary</div>
+        <h1>${isToday?'Today':'Up Next'}</h1>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--text3)">RACE DAY</div>
+        <div style="font-size:26px;font-weight:700;color:var(--green);line-height:1">${dr}<span style="font-size:12px;font-weight:500;color:var(--text3)"> days</span></div>
+      </div>
+    </div>
+
+    <!-- Hero Today Card -->
+    <div class="hero-card">
+      <div class="flex aic jcb" style="margin-bottom:13px">
+        <div style="flex:1;min-width:0;padding-right:12px">
+          <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:0.8px;text-transform:uppercase">${tl.dayOfWeek} · ${fmtDate(d)}</div>
+          <div style="font-size:15px;font-weight:600;margin-top:5px;line-height:1.35">${tl.scheduledWorkout}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:0.5px">DONE</div>
+          <div class="toggle ${tl.isCompleted?'on':''}" onclick="toggleComplete('${tl.date}')"></div>
+        </div>
+      </div>
+      <div class="g3">
+        <div class="card-xs" style="text-align:center">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:3px">TARGET CAL</div>
+          <div style="font-size:13px;font-weight:700;color:${isCheat?'var(--amber)':'var(--text)'}">${isCheat?'FREE':tl.targetCalories}</div>
+        </div>
+        <div class="card-xs" style="text-align:center">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:3px">STEPS</div>
+          <div style="font-size:13px;font-weight:700">${tl.stepTarget?tl.stepTarget.toLocaleString():'—'}</div>
+        </div>
+        <div class="card-xs" style="text-align:center">
+          <div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:3px">PROJ WT</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)">${tl.projectedWeight}</div>
+        </div>
+      </div>
+      ${tl.isCompleted?`<div style="display:flex;align-items:center;gap:6px;margin-top:11px;background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:7px 10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:12px;font-weight:700;color:var(--green)">Row Turned Green — Day Complete!</span>
+      </div>`:''}
+    </div>
+
+    <!-- Quick Log -->
+    <div style="padding:0 16px;margin-bottom:4px">
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:7px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Quick Log
+        </div>
+        <div class="g2" style="margin-bottom:10px">
+          <div><label class="field-label">Weight (lbs)</label><input type="number" id="ql-w" placeholder="e.g. 201.4" step="0.1"></div>
+          <div><label class="field-label">Calories</label><input type="number" id="ql-c" placeholder="e.g. 1650"></div>
+        </div>
+        ${tl.runDistance?`<div class="g2" style="margin-bottom:10px">
+          <div><label class="field-label">Run Miles</label><input type="number" id="ql-d" placeholder="${tl.runDistance}" step="0.01" value="${tl.runDistance||''}"></div>
+          <div><label class="field-label">Run Time (min)</label><input type="number" id="ql-t" placeholder="e.g. 42" step="0.5"></div>
+        </div>`:''}
+        <button class="btn-primary" onclick="quickLog('${tl.date}')">Save Today's Log</button>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="section-title">Progress Metrics</div>
+    <div style="padding:0 16px;margin-bottom:10px">
+      <div class="g2">
+        <div class="card-sm">
+          <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.8px;margin-bottom:8px">WEIGHT</div>
+          <div style="font-size:22px;font-weight:700;line-height:1">${lw}<span style="font-size:11px;color:var(--text3);font-weight:400"> lbs</span></div>
+          <div style="font-size:10px;color:var(--text3);margin:4px 0 6px">Goal: 180.0 lbs</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${wpct.toFixed(1)}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">${wpct.toFixed(0)}% complete</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.8px;margin-bottom:8px">WK ${wk} MILES</div>
+          <div style="font-size:22px;font-weight:700;line-height:1">${miles.toFixed(1)}<span style="font-size:11px;color:var(--text3);font-weight:400"> mi</span></div>
+          <div style="font-size:10px;color:var(--text3);margin:4px 0 6px">Current week</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${Math.min(100,(miles/20)*100).toFixed(1)}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">${done}/${S.logs.length} days done</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HM Predictor -->
+    <div style="padding:0 16px;margin-bottom:10px">
+      <div class="race-card">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:11px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2"/><rect x="6" y="18" width="12" height="4"/><path d="M3 9a6 6 0 0 0 6 6h6a6 6 0 0 0 6-6"/></svg>
+          <span style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.8px">HALF MARATHON PREDICTOR</span>
+        </div>
+        ${pred?`
+          <div class="big-num">${pred.time}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">${pred.pace}/mi avg pace · 13.1 miles</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:5px">Based on last run · ${pred.date}</div>
+          <div style="margin-top:10px">
+            ${pred.rawMin<110?'<span class="badge badge-green">🔥 Sub-2:00 Pace</span>'
+             :pred.rawMin<130?'<span class="badge badge-green">⚡ Strong Finish</span>'
+             :pred.rawMin<150?'<span class="badge badge-amber">💪 Building Strong</span>'
+             :'<span class="badge badge-blue">🏃 Keep Training</span>'}
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:8px">Riegel Formula: T2 = T1 × (13.1/D1)^1.06</div>
+        `:`
+          <div style="font-size:13px;color:var(--text3);padding:4px 0">Log a run with time to activate prediction</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px">Uses Pete Riegel's race predictor formula</div>
+        `}
+      </div>
+    </div>
+
+    <!-- Race countdown -->
+    <div style="padding:0 16px 20px">
+      <div class="card" style="background:linear-gradient(135deg,rgba(34,197,94,0.05),transparent)">
+        <div class="flex aic jcb">
+          <div>
+            <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:0.8px">RACE DAY — NOV 22, 2026</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:3px">13.10 Mi Half Marathon</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${done} days complete · ${(S.logs.length-done)} remaining</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:700;color:var(--green);line-height:1">${dr}</div>
+            <div style="font-size:10px;color:var(--text3)">days to go</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===================== SCHEDULE =====================
+function renderSchedule(){
+  const weeks={};
+  S.logs.forEach(l=>{ if(!weeks[l.weekNumber]) weeks[l.weekNumber]=[]; weeks[l.weekNumber].push(l); });
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const {wk:curWk}=currentWkInfo();
+
+  const filtered = Object.entries(weeks).filter(([w])=>{
+    const wn=parseInt(w);
+    if(S.schedFilter==='current') return wn===curWk;
+    if(S.schedFilter==='incomplete') return weeks[w].some(d=>!d.isCompleted);
+    return true;
+  });
+
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Schedule</h1>
+      <div style="font-size:11px;color:var(--text3)">${completedCount()} / ${S.logs.length} days</div>
+    </div>
+    <div class="tab-row">
+      <button class="tab-pill ${S.schedFilter==='all'?'active':''}" onclick="setSF('all')">All 26 Weeks</button>
+      <button class="tab-pill ${S.schedFilter==='current'?'active':''}" onclick="setSF('current')">This Week</button>
+      <button class="tab-pill ${S.schedFilter==='incomplete'?'active':''}" onclick="setSF('incomplete')">Incomplete</button>
+    </div>
+    ${filtered.map(([wn,days])=>renderWeek(parseInt(wn),days)).join('')}
+  </div>`;
+}
+
+function renderWeek(wn, days){
+  const open=S.openWeeks.has(wn);
+  const done=days.filter(d=>d.isCompleted).length;
+  const allDone=done===days.length;
+  const mi=days.reduce((s,d)=>s+(d.runDistance||0),0);
+  const fd=pDate(days[0].date);
+
+  return `<div class="week-block">
+    <div class="week-header" onclick="toggleWk(${wn})">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700">Week ${wn}</span>
+          ${allDone?'<span class="badge badge-green">✓ Complete</span>':`<span style="font-size:11px;color:var(--text3)">${done}/${days.length}</span>`}
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtDate(fd)} · ${mi.toFixed(1)} mi scheduled</div>
+      </div>
+      <svg class="chevron-icon ${open?'open':''}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="week-body ${open?'open':''}">
+      ${days.map(d=>renderDayRow(d)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDayRow(log){
+  const d=pDate(log.date);
+  const isCheat=log.targetCalories==='UNLIMITED';
+  const delta=log.actualWeight&&log.projectedWeight ? (log.actualWeight-log.projectedWeight):null;
+  const pace=log.runDistance&&log.runDuration ? (()=>{const p=log.runDuration/log.runDistance;return Math.floor(p)+':'+(Math.round((p%1)*60)).toString().padStart(2,'0')})():null;
+
+  return `<div class="day-row ${log.isCompleted?'day-complete':''}" id="row-${log.date}">
+    <div class="day-row-top" onclick="toggleDay('${log.date}')">
+      <div style="width:38px;height:38px;border-radius:9px;background:${log.isCompleted?'rgba(34,197,94,0.12)':'var(--bg4)'};border:1px solid ${log.isCompleted?'rgba(34,197,94,0.3)':'var(--border)'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="font-size:8px;font-weight:700;color:${log.isCompleted?'var(--green)':'var(--text3)'};letter-spacing:0.5px">${d.toLocaleDateString('en-US',{month:'short'}).toUpperCase()}</span>
+        <span style="font-size:15px;font-weight:700;color:${log.isCompleted?'var(--green)':'var(--text)'};line-height:1.1">${d.getDate()}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${log.isCompleted?'var(--green)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${log.dayOfWeek.slice(0,3)} · ${log.scheduledWorkout}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap">
+          <span>${isCheat?'🎉 CHEAT DAY':log.targetCalories+' cal'}</span>
+          <span>Steps: ${log.stepTarget?log.stepTarget.toLocaleString():'—'}</span>
+          ${log.actualWeight?`<span style="color:${delta>=0?'var(--red)':'var(--green)'}">⚖ ${log.actualWeight}${delta!==null?` (${delta>0?'+':''}${delta.toFixed(1)})`:''}</span>`:''}
+        </div>
+      </div>
+      <div onclick="event.stopPropagation();openEdit('${log.date}')" style="color:var(--text3);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--bg4);flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+    </div>
+    <div class="day-expand" id="exp-${log.date}">
+      <div class="g2">
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">PROJ WEIGHT</div><div style="font-size:14px;font-weight:700;color:var(--green)">${log.projectedWeight} lbs</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">ACTUAL WEIGHT</div><div style="font-size:14px;font-weight:700">${log.actualWeight||'—'}${log.actualWeight?' lbs':''}</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">TARGET CAL</div><div style="font-size:14px;font-weight:700;color:${isCheat?'var(--amber)':'inherit'}">${isCheat?'FREE':log.targetCalories}</div></div>
+        <div class="card-xs"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">ACTUAL CAL</div><div style="font-size:14px;font-weight:700">${log.actualCalories||'—'}</div></div>
+      </div>
+      ${log.runDistance?`<div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:8px;padding:10px">
+        <div style="font-size:9px;color:var(--green);font-weight:700;letter-spacing:0.8px;margin-bottom:6px">RUN DATA</div>
+        <div style="display:flex;gap:20px">
+          <div><div style="font-size:9px;color:var(--text3)">DISTANCE</div><div style="font-size:14px;font-weight:700">${log.runDistance} mi</div></div>
+          <div><div style="font-size:9px;color:var(--text3)">DURATION</div><div style="font-size:14px;font-weight:700">${log.runDuration?log.runDuration+' min':'—'}</div></div>
+          ${pace?`<div><div style="font-size:9px;color:var(--text3)">PACE</div><div style="font-size:14px;font-weight:700">${pace}/mi</div></div>`:''}
+        </div>
+      </div>`:''}
+      <div class="g2">
+        <button class="btn-ghost" onclick="toggleComplete('${log.date}')">${log.isCompleted?'✓ Completed':'Mark Complete'}</button>
+        <button class="btn-outline" onclick="openEdit('${log.date}')">Log Data</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===================== ANALYTICS =====================
+function renderAnalytics(){
+  const totalMi = S.logs.reduce((s,l)=>s+(l.runDistance||0),0);
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Analytics</h1>
+      <div style="font-size:11px;color:var(--text3)">Training data</div>
+    </div>
+
+    <div class="section-title">Weight Trend</div>
+    <div style="padding:0 16px;margin-bottom:14px">
+      <div class="card" style="padding:12px">
+        <div style="display:flex;gap:14px;margin-bottom:10px;font-size:11px">
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:20px;height:2px;background:var(--green);display:inline-block;border-radius:1px"></span><span style="color:var(--text3)">Projected</span></span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:20px;height:2px;background:var(--blue);display:inline-block;border-radius:1px"></span><span style="color:var(--text3)">Actual</span></span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:20px;height:1px;background:var(--text3);display:inline-block;border-style:dashed"></span><span style="color:var(--text3)">180 target</span></span>
+        </div>
+        <div class="chart-container"><canvas id="wChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">Weekly Mileage</div>
+    <div style="padding:0 16px;margin-bottom:14px">
+      <div class="card" style="padding:12px">
+        <div class="chart-container"><canvas id="mChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">Summary Stats</div>
+    <div style="padding:0 16px 24px">
+      <div class="card">
+        ${[
+          ['Total Scheduled Miles',totalMi.toFixed(1)+' mi'],
+          ['Total Days',S.logs.length],
+          ['Days Completed',completedCount()],
+          ['Avg Weekly Volume',(totalMi/26).toFixed(1)+' mi/wk'],
+          ['Weight to Lose Still',Math.max(0,latestWeight()-TW).toFixed(1)+' lbs'],
+          ['Race Date','Nov 22, 2026'],
+        ].map(([k,v])=>`<div class="stat-row"><span style="font-size:13px;color:var(--text2)">${k}</span><span style="font-size:13px;font-weight:700;color:var(--green)">${v}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+let chartObjs = {};
+function initCharts(){
+  if(S.chartInited) return;
+  if(typeof Chart==='undefined') return;
+  S.chartInited=true;
+  setTimeout(()=>{
+    // Destroy old
+    Object.values(chartObjs).forEach(c=>c.destroy());
+    chartObjs={};
+
+    // Weight chart — sample every 4th day
+    const wLogs = S.logs.filter((_,i)=>i%4===0||S.logs[i].actualWeight);
+    const wLabels = wLogs.map(l=>fmtDate(pDate(l.date)));
+    const wProj = wLogs.map(l=>l.projectedWeight);
+    const wAct = wLogs.map(l=>l.actualWeight||null);
+
+    const wc = document.getElementById('wChart');
+    if(wc) chartObjs.w = new Chart(wc,{
+      type:'line',
+      data:{labels:wLabels,datasets:[
+        {label:'Projected',data:wProj,borderColor:'#22c55e',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.3,fill:false},
+        {label:'Actual',data:wAct,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#3b82f6',tension:0.3,fill:true,spanGaps:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#52525b',font:{size:9},maxRotation:40,maxTicksLimit:8,autoSkip:true},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+          y:{ticks:{color:'#52525b',font:{size:10},callback:v=>v+'lb'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'},min:175,max:210}
+        }
+      }
+    });
+
+    // Mileage chart
+    const mlabs=[], mdata=[];
+    for(let w=1;w<=26;w++){const m=wkMiles(w);if(m>0){mlabs.push('W'+w);mdata.push(parseFloat(m.toFixed(1)));}}
+    const mc=document.getElementById('mChart');
+    if(mc) chartObjs.m = new Chart(mc,{
+      type:'bar',
+      data:{labels:mlabs,datasets:[{label:'Miles',data:mdata,
+        backgroundColor:mdata.map((_,i)=>`rgba(34,197,94,${0.35+i/Math.max(mdata.length,1)*0.6})`),
+        borderRadius:3,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#52525b',font:{size:9}},grid:{display:false},border:{color:'rgba(255,255,255,0.06)'}},
+          y:{ticks:{color:'#52525b',font:{size:10},callback:v=>v+'mi'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+        }
+      }
+    });
+  },80);
+}
+
+// ===================== SETTINGS =====================
+function renderSettings(){
+  return `<div class="pb-nav">
+    <div class="top-bar">
+      <h1>Strategy</h1>
+      <div style="font-size:11px;color:var(--text3)">Master Rules</div>
+    </div>
+    <div class="section-title">Training Principles</div>
+    <div style="padding:0 16px;margin-bottom:4px">
+      ${[
+        ['Zone 2 Ceiling','Sub-144 BPM on all Easy and Long runs. Aerobic base over ego.','var(--green)'],
+        ['Zone 4 Wednesday','Send day — intervals or tempo, max effort, structured pain.','var(--amber)'],
+        ['Cheat Day Sandwich','1 day depletion before · cheat day · 2 clean days after.','var(--blue)'],
+        ['Cutting Phase','Pre-Aug 31: 1,700 cal base. All running days at base unless noted.','#a855f7'],
+        ['Maintenance Phase','Aug 31+: 2,000 base. Running days = 2,000 + (miles × 100 cal).','#ec4899'],
+        ['Step Protocol','Run days (M/W/Th/Sa): no casual tracking. Lift/Rest (Tu/F/Su): 10,000 floor.','var(--text2)'],
+      ].map(([t,d,c])=>`<div class="rule-card" style="--c:${c}"><div class="rule-title">${t}</div><div class="rule-desc">${d}</div></div>`).join('')}
+    </div>
+    <div class="section-title">Race Plan</div>
+    <div style="padding:0 16px;margin-bottom:8px">
+      <div class="card">
+        ${[['Event','Half Marathon (13.10 mi)'],['Race Date','November 22, 2026'],
+           ['Weight Goal','180.0 lbs by Aug 30'],['HM Goal','Sub 2:00:00'],
+           ['Start Weight','204.8 lbs'],['Training Span','26 Weeks']
+        ].map(([k,v])=>`<div class="stat-row"><span style="font-size:12px;color:var(--text3)">${k}</span><span style="font-size:13px;font-weight:700">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="section-title">Data Management</div>
+    <div style="padding:0 16px 30px">
+      <button class="btn-danger" onclick="resetAll()">⚠ Reset to Factory Defaults</button>
+      <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:8px">Erases all logged data. Cannot be undone.</div>
+    </div>
+  </div>`;
+}
+
+// ===================== MODAL =====================
+function openEdit(date){
+  S.editDate=date;
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  const d=pDate(date);
+  const isCheat=log.targetCalories==='UNLIMITED';
+
+  document.getElementById('modal-root').innerHTML=`
+    <div class="modal-overlay" id="overlay" onclick="closeModal()">
+      <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="flex aic jcb" style="margin-bottom:16px">
+          <div>
+            <div style="font-size:16px;font-weight:700">${log.dayOfWeek}, ${fmtDate(d)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;max-width:250px">${log.scheduledWorkout}</div>
+          </div>
+          <button onclick="closeModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--bg4)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="g2">
+            <div><label class="field-label">Actual Weight (lbs)</label><input type="number" id="m-w" value="${log.actualWeight||''}" placeholder="${log.projectedWeight}" step="0.1"></div>
+            <div><label class="field-label">Actual Calories</label><input type="number" id="m-c" value="${log.actualCalories||''}" placeholder="${isCheat?'CHEAT':log.targetCalories}"></div>
+          </div>
+          ${log.stepTarget?`<div><label class="field-label">Actual Steps</label><input type="number" id="m-s" value="${log.actualSteps||''}" placeholder="10,000 target"></div>`
+          :`<div style="font-size:11px;color:var(--text3);background:var(--bg4);border-radius:7px;padding:8px 11px">⚡ Running day — no step tracking</div>`}
+          ${log.runDistance!==null?`<div class="g2">
+            <div><label class="field-label">Run Miles</label><input type="number" id="m-d" value="${log.runDistance||''}" step="0.01"></div>
+            <div><label class="field-label">Run Time (min)</label><input type="number" id="m-t" value="${log.runDuration||''}" step="0.5" placeholder="e.g. 42"></div>
+          </div>`:''}
+          <div><label class="field-label">Workout Notes</label><textarea id="m-wo" rows="2" placeholder="What did you actually do?">${log.actualWorkoutCompleted||''}</textarea></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg4);border-radius:9px;padding:11px 13px">
+            <span style="font-size:13px;font-weight:600">Mark Day Complete</span>
+            <div class="toggle ${log.isCompleted?'on':''}" onclick="toggleComplete('${date}');document.querySelector('.toggle').classList.toggle('on')"></div>
+          </div>
+          <button class="btn-primary" onclick="saveEdit('${date}')">Save Changes</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeModal(){
+  document.getElementById('modal-root').innerHTML='';
+  S.editDate=null;
+}
+
+// ===================== ACTIONS =====================
+window.toggleComplete=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  log.isCompleted=!log.isCompleted;
+  save();
+  render();
+  if(S.editDate) openEdit(date);
+  toast(log.isCompleted?'✓ Row turned green!':'Day unmarked');
+};
+
+window.toggleDay=function(date){
+  const el=document.getElementById('exp-'+date);
+  if(el) el.classList.toggle('open');
+};
+
+window.toggleWk=function(wn){
+  if(S.openWeeks.has(wn)) S.openWeeks.delete(wn);
+  else S.openWeeks.add(wn);
+  save();
+  render();
+};
+
+window.setSF=function(f){ S.schedFilter=f; render(); };
+
+window.openEdit=openEdit;
+window.closeModal=closeModal;
+
+window.quickLog=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  const w=document.getElementById('ql-w'),c=document.getElementById('ql-c'),
+        d=document.getElementById('ql-d'),t=document.getElementById('ql-t');
+  let changed=false;
+  if(w&&w.value){ log.actualWeight=parseFloat(w.value); changed=true; }
+  if(c&&c.value){ log.actualCalories=parseInt(c.value); changed=true; }
+  if(d&&d.value){ log.runDistance=parseFloat(d.value); changed=true; }
+  if(t&&t.value){ log.runDuration=parseFloat(t.value); changed=true; }
+  if(changed){ save(); render(); toast('Logged! 💪'); }
+  else toast('Nothing entered');
+};
+
+window.saveEdit=function(date){
+  const log=S.logs.find(l=>l.date===date);
+  if(!log) return;
+  const w=document.getElementById('m-w'),c=document.getElementById('m-c'),
+        s=document.getElementById('m-s'),d=document.getElementById('m-d'),
+        t=document.getElementById('m-t'),wo=document.getElementById('m-wo');
+  if(w&&w.value) log.actualWeight=parseFloat(w.value);
+  if(c&&c.value) log.actualCalories=parseInt(c.value);
+  if(s&&s.value) log.actualSteps=parseInt(s.value);
+  if(d&&d.value) log.runDistance=parseFloat(d.value);
+  if(t&&t.value) log.runDuration=parseFloat(t.value);
+  if(wo&&wo.value) log.actualWorkoutCompleted=wo.value;
+  save(); closeModal(); render(); toast('Saved!');
+};
+
+window.resetAll=function(){
+  if(!confirm('Reset ALL data to factory defaults? Cannot be undone.')) return;
+  S.logs=buildLogs();
+  S.openWeeks=new Set([1]);
+  try{ localStorage.removeItem('phm2_logs'); localStorage.removeItem('phm2_openWeeks'); }catch(e){}
+  render(); toast('Reset complete');
+};
+
+window.setTab=setTab;
+
+// ===================== INIT =====================
+const chartScript=document.createElement('script');
+chartScript.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+chartScript.onload=()=>{ if(S.tab==='analytics') initCharts(); };
+document.head.appendChild(chartScript);
+
+render();
+</script>
+</body>
+</html>
